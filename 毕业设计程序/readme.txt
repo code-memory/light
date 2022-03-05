@@ -1,0 +1,1 @@
+本毕业设计程序文件夹包含两个子文件夹，其中Bluetooth文件夹是手机端APP程序，使用Android Studio 2.2为开发环境；HomeLight文件夹是单片机硬件程序，使用Keil uVision4为开发环境。

@@ -1,0 +1,328 @@
+C51 COMPILER V9.00   MAIN                                                                  06/06/2020 18:01:14 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Apps\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <reg52.h> 
+   2          #include <intrins.h>
+   3          #include <stdio.h>
+   4          #include  <math.h>    //Keil library  
+   5          #include "delay.h"
+   6          //      操作方法
+   7          // 蓝牙发送字符 CX或cX 表示关闭x位灯， x取值1-8
+   8          // 蓝牙发送字符 OX或oX 表示关闭x位灯， x取值1-8
+   9          sbit LED1=P1^0;         //初始化led灯对应引脚
+  10          sbit LED2=P1^1;
+  11          sbit LED3=P1^2;
+  12          sbit LED4=P1^3;
+  13          sbit LED5=P1^4;
+  14          sbit LED6=P1^5;
+  15          sbit LED7=P1^6;
+  16          sbit LED8=P1^7;
+  17          
+  18          #define INIT 0xFF          //常量定义
+  19          #define OPEN 0x02
+  20          #define CLOSE 0x03
+  21          #define DAGN01 0x04
+  22          #define DAGN02 0x05
+  23          #define DAGN03 0x06                                                
+  24          
+  25          unsigned long times_5ms=0xaaaaaaaa;                     //定时器计数
+  26          unsigned char Commd_Flag=INIT;          //命令接受标识
+  27          
+  28          unsigned char pwmLed01 = 3; //pwm调整参数
+  29          unsigned char pwmLed02 = 3; //pwm调整参数
+  30          unsigned char pwmLed03 = 3; //pwm调整参数
+  31          unsigned char pwmLed04 = 3; //pwm调整参数
+  32          unsigned char pwmLed05 = 3; //pwm调整参数
+  33          unsigned char pwmLed06 = 3; //pwm调整参数
+  34          unsigned char pwmLed07 = 3; //pwm调整参数
+  35          unsigned char pwmLed08 = 3; //pwm调整参数
+  36          
+  37          unsigned char countLed01 = 0;//pwm计数 
+  38          unsigned char countLed02 = 0;//pwm计数
+  39          unsigned char countLed03 = 0;//pwm计数
+  40          unsigned char countLed04 = 0;//pwm计数
+  41          unsigned char countLed05 = 0;//pwm计数
+  42          unsigned char countLed06 = 0;//pwm计数
+  43          unsigned char countLed07 = 0;//pwm计数
+  44          unsigned char countLed08 = 0;//pwm计数
+  45          
+  46          void Init_Timer0(void);                         //函数声明
+  47          void UART_Init(void);
+  48          void SendByte(unsigned char dat);
+  49          void SendStr(unsigned char *s,unsigned char length);
+  50          
+  51          void main (void)
+  52          {
+  53   1              Init_Timer0();        //定时器0初始化
+  54   1              UART_Init();               //蓝牙 串口 波特率9600
+  55   1              
+C51 COMPILER V9.00   MAIN                                                                  06/06/2020 18:01:14 PAGE 2   
+
+  56   1              LED1=0; 
+  57   1              DelayMs(100); 
+  58   1              LED1=1; //关闭相应的灯 并恢复命令标志
+  59   1              LED2=0; 
+  60   1              DelayMs(100); 
+  61   1              LED2=1; //关闭相应的灯 并恢复命令标志   
+  62   1              LED3=0; 
+  63   1              DelayMs(100); 
+  64   1              LED3=1; //关闭相应的灯 并恢复命令标志   
+  65   1              LED4=0; 
+  66   1              DelayMs(100); 
+  67   1              LED4=1; //关闭相应的灯 并恢复命令标志           
+  68   1              LED5=0; 
+  69   1              DelayMs(100); 
+  70   1              LED5=1; //关闭相应的灯 并恢复命令标志
+  71   1              LED6=0; 
+  72   1              DelayMs(100); 
+  73   1              LED6=1; //关闭相应的灯 并恢复命令标志   
+  74   1              LED7=0; 
+  75   1              DelayMs(100); 
+  76   1              LED7=1; //关闭相应的灯 并恢复命令标志   
+  77   1              LED8=0;
+  78   1              DelayMs(100);   
+  79   1              LED8=1; 
+  80   1      
+  81   1              DelayMs(10);          //延时有助于稳定
+  82   1      
+  83   1              P1=0x00;
+  84   1              while(1)         //主循环
+  85   1              {
+  86   2                              ;//蓝牙的接收处理 均在中断中处理 请查看串口中断
+  87   2      
+  88   2                      countLed01++;
+  89   2                      if(countLed01<pwmLed01)    // 占空比调节
+  90   2                      {LED1=0;}                         //打开        
+  91   2                      else if(countLed01<=10) //关闭时间段
+  92   2                      {
+  93   3                              LED1=1;                 //关闭
+  94   3                              if(countLed01 == 10)     countLed01=0;  //一个周期结束
+  95   3                      }
+  96   2      
+  97   2                      countLed02++;
+  98   2                      if(countLed02<pwmLed02)    //占空比调节
+  99   2                      {LED2=0;}                         //打开        
+ 100   2                      else if(countLed02<=10) //关闭时间段
+ 101   2                      {
+ 102   3                              LED2=2;                 //关闭
+ 103   3                              if(countLed02 == 10)     countLed02=0;  //一个周期结束
+ 104   3                      }
+ 105   2      
+ 106   2                      countLed03++;
+ 107   2                      if(countLed03<pwmLed03)    //占空比调节
+ 108   2                      {LED3=0;}                         //打开        
+ 109   2                      else if(countLed03<=10) //关闭时间段
+ 110   2                      {
+ 111   3                              LED3=1;                 //关闭
+ 112   3                              if(countLed03 == 10)     countLed03=0;  //一个周期结束
+ 113   3                      }
+ 114   2      
+ 115   2      
+ 116   2                      countLed04++;
+ 117   2                      if(countLed04<pwmLed04)    //占空比调节
+C51 COMPILER V9.00   MAIN                                                                  06/06/2020 18:01:14 PAGE 3   
+
+ 118   2                      {LED4=0;}                         //打开        
+ 119   2                      else if(countLed04<=10) //关闭时间段
+ 120   2                      {
+ 121   3                              LED4=1;                 //关闭
+ 122   3                              if(countLed04 == 10)     countLed04=0;  //一个周期结束
+ 123   3                      }
+ 124   2      
+ 125   2      
+ 126   2                      countLed05++;
+ 127   2                      if(countLed05<pwmLed05)    //占空比调节
+ 128   2                      {LED5=0;}                         //打开        
+ 129   2                      else if(countLed05<=10) //关闭时间段
+ 130   2                      {
+ 131   3                              LED5=1;                 //关闭
+ 132   3                              if(countLed05 == 10)     countLed05=0;  //一个周期结束
+ 133   3                      }
+ 134   2      
+ 135   2                      countLed06++;
+ 136   2                      if(countLed06<pwmLed06)    //占空比调节
+ 137   2                      {LED6=0;}                         //打开        
+ 138   2                      else if(countLed06<=10) //关闭时间段
+ 139   2                      {
+ 140   3                              LED6=1;                 //关闭
+ 141   3                              if(countLed06 == 10)     countLed06=0;  //一个周期结束
+ 142   3                      }
+ 143   2      
+ 144   2                      countLed07++;
+ 145   2                      if(countLed07<pwmLed07)    // 占空比调节
+ 146   2                      {LED7=0;}                         //打开        
+ 147   2                      else if(countLed07<=10) //关闭时间段
+ 148   2                      {
+ 149   3                              LED7=1;                 //关闭
+ 150   3                              if(countLed07 == 10)     countLed07=0;  //一个周期结束
+ 151   3                      }
+ 152   2      
+ 153   2                      countLed08++;
+ 154   2                      if(countLed08<pwmLed08)    // 占空比调节
+ 155   2                      {LED8=0;}                         //打开        
+ 156   2                      else if(countLed08<=10) //关闭时间段
+ 157   2                      {
+ 158   3                              LED8=1;                 //关闭
+ 159   3                              if(countLed08 == 10)     countLed08=0;  //一个周期结束
+ 160   3                      }
+ 161   2      
+ 162   2              }
+ 163   1      }
+ 164          
+ 165          void Init_Timer0(void)  //初始化定时器
+ 166          {
+ 167   1              TMOD |= 0x01;     //使用模式1，16位定时器，使用"|"符号可以在使用多个定时器时不受影响                 
+ 168   1              TH0=(65536-10000)/256;            //重新赋值 20ms
+ 169   1              TL0=(65536-10000)%256;
+ 170   1              EA=1;            //总中断打开
+ 171   1              ET0=1;           //定时器中断打开
+ 172   1              TR0=1;           //定时器开关打开
+ 173   1      }
+ 174          void UART_Init(void)    //初始化串口
+ 175          {
+ 176   1          SCON  = 0x50;                       // SCON: 模式 1, 8-bit UART, 使能接收  
+ 177   1          TMOD |= 0x20;               // TMOD: timer 1, mode 2, 8-bit 重装
+ 178   1          TH1   = 0xFD;               // TH1:  重装值 9600 波特率 晶振 11.0592MHz
+ 179   1              TL1 = TH1;  
+C51 COMPILER V9.00   MAIN                                                                  06/06/2020 18:01:14 PAGE 4   
+
+ 180   1          TR1   = 1;                  // TR1:  timer 1 打开                         
+ 181   1          EA    = 1;                  //打开总中断
+ 182   1          ES    = 1;                  //打开串口中断
+ 183   1      } 
+ 184          
+ 185          void Timer0_isr(void) interrupt 1               //定时器中断
+ 186          {
+ 187   1              TH0=(65536-5000)/256;             //重新赋值 5ms
+ 188   1              TL0=(65536-5000)%256;
+ 189   1              times_5ms++;
+ 190   1      
+ 191   1      }
+ 192          
+ 193          void UART_SER (void) interrupt 4        //串行中断服务程序
+ 194          {
+ 195   1              unsigned char R_buf;
+ 196   1              if(RI)                        //判断是接收中断产生
+ 197   1              {
+ 198   2                      RI=0;                      //标志位清零
+ 199   2                      R_buf=SBUF;
+ 200   2                      if((R_buf=='O')||(R_buf=='o'))
+ 201   2                      {
+ 202   3                              Commd_Flag=OPEN;        //接收到打开灯标志
+ 203   3                      }
+ 204   2                      else if((R_buf=='S')||(R_buf=='s'))
+ 205   2                      {
+ 206   3                              Commd_Flag=CLOSE;       //接收到 关闭灯标志
+ 207   3                      }
+ 208   2                      else if((R_buf=='A')||(R_buf=='a'))
+ 209   2                      {                                 
+ 210   3                              Commd_Flag=DAGN01;      //接收到 关闭灯标志
+ 211   3                      }
+ 212   2                      else if((R_buf=='B')||(R_buf=='b'))
+ 213   2                      {
+ 214   3                              Commd_Flag=DAGN02;      //接收到 关闭灯标志
+ 215   3                      }
+ 216   2                      else if((R_buf=='C')||(R_buf=='c'))
+ 217   2                      {
+ 218   3                              Commd_Flag=DAGN03;      //接收到 关闭灯标志
+ 219   3                      }
+ 220   2                      else if((R_buf!='1')&&(R_buf!='2')&&(R_buf!='3')&&(R_buf!='4')&&(R_buf!='5')&&(R_buf!='6')&&(R_buf!='7')
+             -&&(R_buf!='8')&&(R_buf!='N'))
+ 221   2                      {
+ 222   3                              Commd_Flag=INIT;         //否则 初始化接受标志
+ 223   3                      }
+ 224   2                      if((Commd_Flag==OPEN)||(Commd_Flag==DAGN01))                    //根据命令值进行打开相应的灯
+ 225   2                      {
+ 226   3                              switch(R_buf)
+ 227   3                              {
+ 228   4                                      case '1':pwmLed01=3;Commd_Flag=INIT;break;      //打开相应的灯 并恢复命令标志
+ 229   4                                      case '2':pwmLed02=3;Commd_Flag=INIT;break;                      
+ 230   4                                      case '3':pwmLed03=3;Commd_Flag=INIT;break;                      
+ 231   4                                      case '4':pwmLed04=3;Commd_Flag=INIT;break;                      
+ 232   4                                      case '5':pwmLed05=3;Commd_Flag=INIT;break;      
+ 233   4                                      case '6':pwmLed06=3;Commd_Flag=INIT;break;                      
+ 234   4                                      case '7':pwmLed07=3;Commd_Flag=INIT;break;                      
+ 235   4                                      case '8':pwmLed08=3;Commd_Flag=INIT;break;
+ 236   4                                      case 'N':pwmLed01=3;pwmLed02=3;pwmLed03=3;pwmLed04=3;pwmLed05=3;pwmLed06=3;pwmLed07=3;pwmLed08=3;Commd
+             -_Flag=INIT;break;
+ 237   4                                      default:break;                                           //此处错误判断 不可恢复命令标准
+ 238   4                              }
+ 239   3                      }
+C51 COMPILER V9.00   MAIN                                                                  06/06/2020 18:01:14 PAGE 5   
+
+ 240   2      else if(Commd_Flag==CLOSE)//根据命令值进行关闭相应的灯
+ 241   2                      {
+ 242   3                              switch(R_buf)
+ 243   3                              {
+ 244   4                                      case '1':pwmLed01=1;Commd_Flag=INIT;break;      //打开相应的灯 并恢复命令标志
+ 245   4                                      case '2':pwmLed02=1;Commd_Flag=INIT;break;                      
+ 246   4                                      case '3':pwmLed03=1;Commd_Flag=INIT;break;                      
+ 247   4                                      case '4':pwmLed04=1;Commd_Flag=INIT;break;                      
+ 248   4                                      case '5':pwmLed05=1;Commd_Flag=INIT;break;      
+ 249   4                                      case '6':pwmLed06=1;Commd_Flag=INIT;break;                      
+ 250   4                                      case '7':pwmLed07=1;Commd_Flag=INIT;break;                      
+ 251   4                                      case '8':pwmLed08=1;Commd_Flag=INIT;break;
+ 252   4                                      case 'N':pwmLed01=1;pwmLed02=1;pwmLed03=1;pwmLed04=1;pwmLed05=1;pwmLed06=1;pwmLed07=1;pwmLed08=1;Commd
+             -_Flag=INIT;break;
+ 253   4                                      default:break;                                           //此处错误判断 不可恢复命令标准
+ 254   4                              }
+ 255   3                      }
+ 256   2                      else if(Commd_Flag==DAGN02)//根据命令值进行关闭相应的灯
+ 257   2                      {
+ 258   3                              switch(R_buf)
+ 259   3                              {
+ 260   4                                      case '1':pwmLed01=6;Commd_Flag=INIT;break;      //打开相应的灯 并恢复命令标志
+ 261   4                                      case '2':pwmLed02=6;Commd_Flag=INIT;break;                      
+ 262   4                                      case '3':pwmLed03=6;Commd_Flag=INIT;break;                      
+ 263   4                                      case '4':pwmLed04=6;Commd_Flag=INIT;break;                      
+ 264   4                                      case '5':pwmLed05=6;Commd_Flag=INIT;break;      
+ 265   4                                      case '6':pwmLed06=6;Commd_Flag=INIT;break;                      
+ 266   4                                      case '7':pwmLed07=6;Commd_Flag=INIT;break;                      
+ 267   4                                      case '8':pwmLed08=6;Commd_Flag=INIT;break;                              
+ 268   4                                      default:break;                                           //此处错误判断 不可恢复命令标准
+ 269   4                              }
+ 270   3                      }
+ 271   2                      else if(Commd_Flag==DAGN03)//根据命令值进行关闭相应的灯
+ 272   2                      {
+ 273   3                              switch(R_buf)
+ 274   3                              {
+ 275   4                                      case '1':pwmLed01=9;Commd_Flag=INIT;break;      //打开相应的灯 并恢复命令标志
+ 276   4                                      case '2':pwmLed02=9;Commd_Flag=INIT;break;                      
+ 277   4                                      case '3':pwmLed03=9;Commd_Flag=INIT;break;                      
+ 278   4                                      case '4':pwmLed04=9;Commd_Flag=INIT;break;                      
+ 279   4                                      case '5':pwmLed05=9;Commd_Flag=INIT;break;      
+ 280   4                                      case '6':pwmLed06=9;Commd_Flag=INIT;break;                      
+ 281   4                                      case '7':pwmLed07=9;Commd_Flag=INIT;break;                      
+ 282   4                                      case '8':pwmLed08=9;Commd_Flag=INIT;break;                              
+ 283   4                                      default:break;                                           //此处错误判断 不可恢复命令标准
+ 284   4                              }
+ 285   3                      }
+ 286   2      
+ 287   2                      SBUF=R_buf;                                //返回接收到的数据
+ 288   2              }
+ 289   1              if(TI)  //如果是发送标志位，清零
+ 290   1              TI=0;
+ 291   1      } 
+ 292          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1056    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     21       1
+C51 COMPILER V9.00   MAIN                                                                  06/06/2020 18:01:14 PAGE 6   
+
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
